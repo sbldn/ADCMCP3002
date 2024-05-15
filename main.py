@@ -1,4 +1,4 @@
-import ADCMPC3002
+import ADCMCP3002
 import signal
 import json
 import time
@@ -7,7 +7,7 @@ import time
 def signal_handler(sig, frame):
     sensor.close()
 
-sensor=ADCMPC3002.SensorReader()
+sensor=ADCMCP3002.SensorReader()
 signal.signal(signal.SIGINT, signal_handler)
 
 if __name__ == "__main__":
