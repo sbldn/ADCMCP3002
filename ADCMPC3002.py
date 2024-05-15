@@ -35,22 +35,28 @@ class SensorReader:
 
     def read_temperature(self):
         adc = self.read_adc(0)
-        voltage = (adc * 5) / 1023
-        temperature = ((voltage * 5 / 1023) - 1.51) * 17 / 1.01
+        temperature = ((adc*5/1023)-(1.51))*17/1.01
         return temperature
 
     def read_luminosity(self):
         adc = self.read_adc(1)
         return adc
 
-    def read_average_adc(self, channel, samples=10):
-        total = sum(self.read_adc(channel) for _ in range(samples))
-        return total / samples
+    def read_average_adc(self, channel, sensor="", samples=10, ):
+        if sensor == "temp":
+            total = sum(self.read_temperature() for _ in range(samples))
+            
+        elif sensor == "lum":
+            total = sum(self.read_adc(channel) for _ in range(samples))
+            
+        else:
+            total = sum(self.read_adc(channel) for _ in range(samples))
+        return round(total / samples)
 
     def get_values(self):
         timestamp = datetime.datetime.now()
-        temperature = self.read_average_adc(0)
-        luminosity = self.read_average_adc(1)
+        temperature = self.read_average_adc(0,"temp")
+        luminosity = self.read_average_adc(1,"lum")
         return {
             "Date": timestamp.strftime("%Y-%m-%d %H:%M:%S"),
             "Temperature": temperature,
