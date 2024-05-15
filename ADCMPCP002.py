@@ -58,7 +58,7 @@ class SensorReader:
         temperature = self.read_average_adc(0,"temp")
         luminosity = self.read_average_adc(1,"lum")
         return {
-            "Date": timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+            "Time": timestamp.strftime("%Y-%m-%d %H:%M:%S"),
             "Temperature": temperature,
             "Light": luminosity
         }
