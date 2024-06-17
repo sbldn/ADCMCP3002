@@ -19,7 +19,6 @@ class SensorReader:
                 'Temperature': serial_json['temperature'],
                 'Light': serial_json['luminosity']
             }
-            print(return_json)
         else:
             return_json = {}
         
@@ -30,7 +29,7 @@ class SensorReader:
         try:
             # Abrir el puerto serial
             ser = serial.Serial(puerto, baudrate, timeout=1)
-            print(f"Conectado al puerto {puerto} a {baudrate} baudios.")
+            # print(f"Conectado al puerto {puerto} a {baudrate} baudios.")
             
             # Leer datos continuamente
             while True:
@@ -49,7 +48,7 @@ class SensorReader:
             # Cerrar el puerto serial
             if 'ser' in locals() and ser.is_open:
                 ser.close()
-                print("Puerto serial cerrado.")
+                # print("Puerto serial cerrado.")
 
 
 if __name__ == "__main__":
