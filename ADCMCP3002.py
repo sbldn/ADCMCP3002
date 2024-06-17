@@ -1,64 +1,58 @@
-#!/usr/bin/python3
-
-# Tested on Raspberry Pi OS. Requirements: enable SPI, for example
-# from raspi-config. The example is based on a SparkFun tutorial:
-# https://learn.sparkfun.com/tutorials/python-programming-tutorial-getting-started-with-the-raspberry-pi/experiment-3-spi-and-analog-input
-
-#!/usr/bin/python3
-
-import sys
 import datetime
-import spidev
+import serial
+import json
+
+
 
 class SensorReader:
-    def __init__(self, spi_channel=0):
-        self.spi = spidev.SpiDev()
-        self.spi.open(0, spi_channel)
-        self.spi.max_speed_hz = 1200000
+    def __init__(self, puerto='COM8', baudrate=115200):
+        self.puerto = puerto
+        self.baudrate=baudrate
 
-    def close(self):
-        self.spi.close()
-        sys.exit(0)
-
-    def read_adc(self, channel):
-        if channel != 0:
-            channel = 1
-        msg = 0b11
-        msg = ((msg << 1) + channel) << 5
-        msg = [msg, 0b00000000]
-        reply = self.spi.xfer2(msg)
-        adc = 0
-        for n in reply:
-            adc = (adc << 8) + n
-        adc = adc >> 1
-        return adc
-
-    def read_temperature(self):
-        adc = self.read_adc(0)
-        temperature = ((adc*5/1023)-(1.51))*17/1.01
-        return temperature
-
-    def read_luminosity(self):
-        adc = self.read_adc(1)
-        return adc
-
-    def read_average_adc(self, channel, sensor="", samples=10, ):
-        if sensor == "temp":
-            total = sum(self.read_temperature() for _ in range(samples))
-            
-        elif sensor == "lum":
-            total = sum(self.read_adc(channel) for _ in range(samples))
-            
-        else:
-            total = sum(self.read_adc(channel) for _ in range(samples))
-        return round(total / samples)
 
     def get_values(self):
         timestamp = datetime.datetime.now()
-        temperature = self.read_average_adc(0,"temp")
-        luminosity = self.read_average_adc(1,"lum")
-        return {
-            "Time": timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-            "Temperature": temperature,
-            "Light": luminosity
-        }
+        serial_json=self.leer_puerto_serial(self.puerto, self.baudrate)
+        if serial_json:
+            return_json = {
+                'Time': timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                'Temperature': serial_json['temperature'],
+                'Light': serial_json['luminosity']
+            }
+        else:
+            return_json = {}
+        
+        return return_json
+        
+
+    def leer_puerto_serial(self, puerto, baudrate):
+        try:
+            # Abrir el puerto serial
+            ser = serial.Serial(puerto, baudrate, timeout=1)
+            # print(f"Conectado al puerto {puerto} a {baudrate} baudios.")
+            
+            # Leer datos continuamente
+            while True:
+                if ser.in_waiting > 0:
+                    linea = ser.readline().decode('utf-8').rstrip()
+                    return json.loads(linea)
+
+
+        except serial.SerialException as e:
+            print(f"Error al abrir el puerto serial: {e}")
+
+        except KeyboardInterrupt:
+            print("Lectura interrumpida por el usuario.")
+        
+        finally:
+            # Cerrar el puerto serial
+            if 'ser' in locals() and ser.is_open:
+                ser.close()
+                # print("Puerto serial cerrado.")
+
+
+if __name__ == "__main__":
+    sensor = SensorReader(puerto='COM8', baudrate=115200)
+    values = sensor.get_values()
+    print(values)
+
